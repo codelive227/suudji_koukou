@@ -25,6 +25,11 @@ class User extends Authenticatable
         'password',
     ];
 
+     public function paiementsValides()
+    {
+        return $this->hasMany(Paiement::class, 'valide_par_agent_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

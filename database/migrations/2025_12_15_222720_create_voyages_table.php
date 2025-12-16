@@ -20,6 +20,10 @@ return new class extends Migration
             $table->integer('places_totales');
             $table->integer('places_restantes');
             $table->enum('type_voyage', ['Oumra', 'Hajj']);
+            $table->foreignId('voyage_actuel_id')
+                  ->nullable()
+                  ->constrained('voyages')
+                  ->onDelete('set null');
             $table->timestamps();
         });
     }
