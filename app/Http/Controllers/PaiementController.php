@@ -3,63 +3,45 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paiement;
+use App\Models\Pelerin;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class PaiementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'pelerin_id' => 'required|exists:pelerins,id',
+            'montant' => 'required|numeric|min:1',
+            'mode_paiement' => 'required',
+        ]);
+
+        $paiement = Paiement::create([
+            'pelerin_id' => $request->pelerin_id,
+            'montant' => $request->montant,
+            'mode_paiement' => $request->mode_paiement,
+            'reference_recu' => 'REC-' . strtoupper(Str::random(8)),
+            'valide_par_agent_id' => auth()->id(), // L'admin connecté
+        ]);
+
+        return redirect()->back()->with('success', 'Paiement enregistré.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Paiement $paiement)
+    public function downloadFacture(Paiement $paiement)
     {
-        //
-    }
+        $pelerin = $paiement->pelerin;
+        $totalPaye = $pelerin->paiements()->sum('montant');
+        $solde = $pelerin->voyage->prix_total - $totalPaye;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Paiement $paiement)
-    {
-        //
-    }
+        $pdf = Pdf::loadView('pdf.facture', [
+            'paiement' => $paiement,
+            'pelerin' => $pelerin,
+            'solde' => $solde,
+            'date' => now()->format('d/m/Y')
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Paiement $paiement)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Paiement $paiement)
-    {
-        //
+        return $pdf->download("Facture_{$paiement->reference_recu}.pdf");
     }
 }

@@ -7,59 +7,25 @@ use Illuminate\Http\Request;
 
 class VoyageController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $voyages = Voyage::withCount('pelerins')->latest()->get();
+        return view('voyages.index', compact('voyages'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $data = $request->validate([
+            'nom_voyage' => 'required',
+            'date_depart' => 'required|date',
+            'prix_total' => 'required|numeric',
+            'places_totales' => 'required|integer',
+            'type_voyage' => 'required|in:Oumra,Hajj',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Voyage $voyage)
-    {
-        //
-    }
+        $data['places_restantes'] = $request->places_totales;
+        Voyage::create($data);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Voyage $voyage)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Voyage $voyage)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Voyage $voyage)
-    {
-        //
+        return redirect()->route('voyages.index')->with('success', 'Voyage créé.');
     }
 }

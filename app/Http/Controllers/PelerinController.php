@@ -3,63 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelerin;
+use App\Models\Voyage;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PelerinController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Recherche multicritère automatique
+        $pelerins = Pelerin::with('voyage')
+            ->when($request->search, function ($query, $search) {
+                $query->where('nom', 'like', "%{$search}%")
+                      ->orWhere('prenom', 'like', "%{$search}%")
+                      ->orWhere('numero_passport', 'like', "%{$search}%");
+            })
+            ->when($request->voyage_id, fn($q, $id) => $q->where('voyage_actuel_id', $id))
+            ->latest()
+            ->paginate(10);
+
+        return view('pelerins.index', compact('pelerins'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nom' => 'required',
+            'prenom' => 'required',
+            'tel' => 'required',
+            'numero_passport' => 'required|unique:pelerins',
+            'voyage_actuel_id' => 'required|exists:voyages,id',
+            // Ajoutez les autres champs ici
+        ]);
+
+        Pelerin::create($data);
+        return redirect()->back()->with('success', 'Pèlerin inscrit avec succès.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pelerin $pelerin)
+    public function generatePdf(Pelerin $pelerin)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Pelerin $pelerin)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pelerin $pelerin)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pelerin $pelerin)
-    {
-        //
+        $pdf = Pdf::loadView('pdf.fiche-pelerin', compact('pelerin'));
+        return $pdf->download("Fiche_{$pelerin->nom}.pdf");
     }
 }
