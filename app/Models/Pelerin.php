@@ -7,13 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pelerin extends Model
 {
-    //
     use HasFactory;
 
     protected $fillable = [
         'nom',
         'prenom',
-        'date_naisssance',
+        'date_naissance',
         'tel',
         'email',
         'numero_passport',
@@ -30,5 +29,4 @@ class Pelerin extends Model
     public function voyage(){
         return $this->belongsTo(Voyage::class, 'voyage_actuel_id');
     }
-    
 }

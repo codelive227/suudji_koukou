@@ -3,46 +3,77 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelerin;
-use App\Models\Voyage;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PelerinController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        // Recherche multicritère automatique
-        $pelerins = Pelerin::with('voyage')
-            ->when($request->search, function ($query, $search) {
-                $query->where('nom', 'like', "%{$search}%")
-                      ->orWhere('prenom', 'like', "%{$search}%")
-                      ->orWhere('numero_passport', 'like', "%{$search}%");
-            })
-            ->when($request->voyage_id, fn($q, $id) => $q->where('voyage_actuel_id', $id))
-            ->latest()
-            ->paginate(10);
-
+        $pelerins = Pelerin::latest()->paginate(10);
         return view('pelerins.index', compact('pelerins'));
+    }
+
+    public function create()
+    {
+        return view('pelerins.create');
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'nom' => 'required',
-            'prenom' => 'required',
-            'tel' => 'required',
-            'numero_passport' => 'required|unique:pelerins',
-            'voyage_actuel_id' => 'required|exists:voyages,id',
-            // Ajoutez les autres champs ici
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'date_naissance' => 'required|date',
+            'tel' => 'required|string|max:20',
+            'email' => 'required|email|unique:pelerins,email',
+            'numero_passport' => 'required|string|unique:pelerins,numero_passport',
+            'date_emission' => 'required|date',
+            'date_expire' => 'required|date|after_or_equal:date_emission',
+            'statut_visa' => 'required|string',
+            'statut_dossier' => 'required|string',
         ]);
 
-        Pelerin::create($data);
-        return redirect()->back()->with('success', 'Pèlerin inscrit avec succès.');
+        Pelerin::create($validated);
+
+        return redirect()->route('pelerins.index')
+                         ->with('success', 'Pèlerin ajouté avec succès.');
     }
 
-    public function generatePdf(Pelerin $pelerin)
+    public function show(Pelerin $pelerin)
     {
-        $pdf = Pdf::loadView('pdf.fiche-pelerin', compact('pelerin'));
-        return $pdf->download("Fiche_{$pelerin->nom}.pdf");
+        return view('pelerins.show', compact('pelerin'));
+    }
+
+    public function edit(Pelerin $pelerin)
+    {
+        return view('pelerins.edit', compact('pelerin'));
+    }
+
+    public function update(Request $request, Pelerin $pelerin)
+    {
+        $validated = $request->validate([
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'date_naissance' => 'required|date',
+            'tel' => 'required|string|max:20',
+            'email' => 'required|email|unique:pelerins,email,' . $pelerin->id,
+            'numero_passport' => 'required|string|unique:pelerins,numero_passport,' . $pelerin->id,
+            'date_emission' => 'required|date',
+            'date_expire' => 'required|date|after_or_equal:date_emission',
+            'statut_visa' => 'required|string',
+            'statut_dossier' => 'required|string',
+        ]);
+
+        $pelerin->update($validated);
+
+        return redirect()->route('pelerins.index')
+                         ->with('success', 'Pèlerin mis à jour avec succès.');
+    }
+
+    public function destroy(Pelerin $pelerin)
+    {
+        $pelerin->delete();
+        return redirect()->route('pelerins.index')
+                         ->with('success', 'Pèlerin supprimé avec succès.');
     }
 }

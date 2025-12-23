@@ -1,18 +1,64 @@
-<x-layouts.app :title="__('Dashboard')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-        </div>
-        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+@extends('layouts.app')
+
+@section('title', 'Dashboard')
+
+@section('content')
+<h1 class="mb-4">Bienvenue sur votre Dashboard</h1>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm p-3">
+            <h5>Pèlerins</h5>
+            <p class="fs-3 fw-bold">{{ \App\Models\Pelerin::count() }}</p>
         </div>
     </div>
-</x-layouts.app>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm p-3">
+            <h5>Voyages</h5>
+            <p class="fs-3 fw-bold">{{ \App\Models\Voyage::count() }}</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm p-3">
+            <h5>Paiements</h5>
+            <p class="fs-3 fw-bold">{{ \App\Models\Paiement::count() }}</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm p-3">
+            <h5>Utilisateurs</h5>
+            <p class="fs-3 fw-bold">{{ \App\Models\User::count() }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-3">
+            <h5>Voyages à venir</h5>
+            <ul class="list-group list-group-flush">
+                @foreach(\App\Models\Voyage::orderBy('date_depart', 'asc')->take(5)->get() as $voyage)
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ $voyage->nom_voyage }} ({{ $voyage->type_voyage }})
+                        <span>{{ $voyage->date_depart->format('d/m/Y') }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-3">
+            <h5>Derniers paiements</h5>
+            <ul class="list-group list-group-flush">
+                @foreach(\App\Models\Paiement::latest()->take(5)->get() as $paiement)
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ $paiement->pelerin->nom }} {{ $paiement->pelerin->prenom }}
+                        <span>{{ number_format($paiement->montant, 2) }} CFA</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</div>
+@endsection
+ 

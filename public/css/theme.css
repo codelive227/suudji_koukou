@@ -1,0 +1,55 @@
+/* ===== SIDEBAR BLANCHE ===== */
+.sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e5e5e5;
+}
+
+/* Liens principaux */
+.sidebar .nav-link {
+    color: #212529;
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: all .25s ease;
+    font-weight: 500;
+}
+
+/* Hover */
+.sidebar .nav-link:hover {
+    background: rgba(253, 126, 20, 0.12);
+    color: #fd7e14;
+}
+
+/* Actif */
+.sidebar .nav-link.active {
+    background: rgba(212, 175, 55, 0.25);
+    color: #198754;
+    font-weight: 700;
+}
+
+/* Sous-menus */
+.sub-link {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    color: #555;
+    border-radius: 6px;
+}
+
+.sub-link:hover {
+    background: rgba(253, 126, 20, 0.15);
+    color: #fd7e14;
+}
+
+.sub-link.active {
+    color: #198754;
+    font-weight: 700;
+}
+
+/* Icône chevron */
+.nav-link .bi-chevron-down {
+    font-size: .8rem;
+    transition: transform .3s;
+}
+
+.nav-link[aria-expanded="true"] .bi-chevron-down {
+    transform: rotate(180deg);
+}

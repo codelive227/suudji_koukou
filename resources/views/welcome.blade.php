@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('no-sidebar', true)
+
 @section('title', 'Accueil')
 
 @section('content')
